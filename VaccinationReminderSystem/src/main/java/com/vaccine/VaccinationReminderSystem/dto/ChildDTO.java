@@ -21,7 +21,7 @@ public class ChildDTO {
     public List<ScheduleDTO> getSchedules() { return schedules; }
     public void setSchedules(List<ScheduleDTO> schedules) { this.schedules = schedules; }
     
-    private String parentEmail; // <-- ADD THIS LINE
+    private String parentEmail;
 
 	public String getParentEmail() {
 		return parentEmail;

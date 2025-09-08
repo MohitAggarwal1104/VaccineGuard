@@ -21,15 +21,10 @@ public class ChildController {
     @Autowired
     private ChildService childService;
 
- // MODIFY YOUR GET MAPPING FOR ALL CHILDREN
     @GetMapping
     public ResponseEntity<List<ChildDTO>> getChildrenForCurrentUser(Authentication authentication) {
-        // Get the logged-in user's email from the security context
         String email = authentication.getName(); 
-        
-        // ✅ ADD THIS LINE FOR DEBUGGING
         System.out.println(">>>> FETCHING CHILDREN FOR LOGGED-IN USER: " + email);
-        // Call the new service method that returns DTOs
         List<ChildDTO> children = childService.getChildrenForUser(email);
         
         return ResponseEntity.ok(children);
@@ -40,13 +35,8 @@ public class ChildController {
     }
     @PostMapping
     public ResponseEntity<Child> create(@RequestBody Child child, Authentication authentication) {
-        // 1. Get the email of the currently logged-in user.
         String email = authentication.getName();
-        
-        // 2. Pass the child data and the user's email to the service layer to handle the logic.
         Child savedChild = childService.createChildForUser(child, email);
-        
-        // 3. Return the saved child with a 200 OK status.
         return ResponseEntity.ok(savedChild);
     }
 }

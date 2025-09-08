@@ -30,13 +30,11 @@ public class JwtUtil {
     }
 
     // --- Token Validation ---
-    // This new method is more secure. It checks if the token belongs to the correct user AND is not expired.
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    // --- Claim Extraction ---
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -51,8 +49,6 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        // Note: This method will throw an exception if the token is expired or has an invalid signature.
-        // The calling methods should handle this.
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
     }
 

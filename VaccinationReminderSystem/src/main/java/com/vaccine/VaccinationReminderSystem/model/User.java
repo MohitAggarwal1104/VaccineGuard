@@ -24,10 +24,6 @@ public class User {
 
     @Column(nullable = false)
     private String password;
-
-    // --- MANUAL GETTERS AND SETTERS ---
-    // Lombok was supposed to create these, but we will do it ourselves.
-
     public Long getId() {
         return id;
     }
@@ -59,7 +55,4 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
-
-    // You can also add equals(), hashCode(), and toString() if needed,
-    // but getters and setters are the most critical for this error.
 }

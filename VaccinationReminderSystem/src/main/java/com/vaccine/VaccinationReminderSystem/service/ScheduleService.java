@@ -22,7 +22,6 @@ public class ScheduleService {
     public Schedule save(Schedule schedule) {
         return scheduleRepository.save(schedule);
     }
-    // Add this helper method
     public Schedule getById(Long id) {
         return scheduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Schedule not found with id: " + id));
@@ -30,10 +29,7 @@ public class ScheduleService {
     public void delete(Long id) {
         scheduleRepository.deleteById(id);
     }
-    // ✅ FIND AND MODIFY THIS METHOD (or a similar one)
     public List<Schedule> getSchedulesForChild(Long childId) {
-        // You are probably calling a different method right now.
-        // Change it to call the new "findByChildIdWithVaccine" method.
         return scheduleRepository.findByChildIdWithVaccine(childId);
     }
 	 @Transactional

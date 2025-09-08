@@ -15,13 +15,9 @@ public class Child {
     private String name;
     private LocalDate dob;
 
-    // This is the ONLY field needed to link to the parent.
-    // It creates the 'parent_id' column in the database.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id", nullable = false)
     private User parent;
-
-    // REMOVE any other fields like 'private String parentEmail;' from your old code.
 
     @OneToMany(mappedBy = "child", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Schedule> schedules = new ArrayList<>();
