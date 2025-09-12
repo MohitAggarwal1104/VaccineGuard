@@ -1,1 +1,1 @@
-The Vaccine Reminder System is a web app that helps parents manage children’s vaccination schedules. Built with Spring Boot and HTML/JS, it allows child registration, auto-schedules vaccines, tracks completed doses, and sends reminders, ensuring no vaccine is missed.
+The Vaccine Reminder System is a web app that helps parents manage children’s vaccination schedules. Built with Spring Boot and HTML/JS, it allows child registration, auto-schedules vaccines, tracks completed doses, and sends reminders, ensuring no Vaccine is missed.
