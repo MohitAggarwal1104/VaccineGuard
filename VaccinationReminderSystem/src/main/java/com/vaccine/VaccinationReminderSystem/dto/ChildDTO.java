@@ -1,7 +1,5 @@
 package com.vaccine.VaccinationReminderSystem.dto;
-
 import java.util.List;
-
 public class ChildDTO {
     private Long id;
     private String name;
