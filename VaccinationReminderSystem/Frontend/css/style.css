@@ -17,6 +17,7 @@ body {
     width: 100%;
     max-width: 800px;
 }
+
 h1, h2 { text-align: center; color: #333; }
 /* Form Styles */
 form { display: flex; flex-direction: column; }
