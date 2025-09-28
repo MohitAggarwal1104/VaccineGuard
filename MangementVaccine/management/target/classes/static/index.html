@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaccine Guard</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for better typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons Library (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom styles for animations and specific elements */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* A very light gray background */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .view {
+            display: none;
+            animation: fadeIn 0.6s ease-in-out;
+        }
+        .view.active {
+            display: flex; 
+        }
+        .form-wrapper {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .form-wrapper.active {
+            display: block;
+        }
+        .modal {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            animation: slideInUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideInUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        /* Wavy animation for auth screen */
+        @keyframes gentle-wave {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(1.5deg); }
+        }
+        #wavy-svg {
+            animation: gentle-wave 15s ease-in-out infinite;
+            will-change: transform;
+        }
+        /* Custom notification styling */
+        #notification {
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s ease-in-out;
+            transform: translateY(-120%);
+            opacity: 0;
+        }
+        #notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .spinner {
+            border-top-color: #3b82f6; /* blue-500 */
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .notification-dot {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 12px;
+            height: 12px;
+            background-color: #ef4444; /* red-500 */
+            border-radius: 9999px;
+            border: 2px solid white;
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body class="antialiased text-slate-800">
+
+    <!-- Notification element for feedback -->
+    <div id="notification" class="fixed top-5 right-5 z-50 p-4 rounded-xl shadow-2xl text-white max-w-sm flex items-center">
+        <div id="notificationIcon" class="mr-3"></div>
+        <p id="notificationMessage"></p>
+    </div>
+    
+    <!-- Main container to hold all views -->
+    <main>
+
+        <!-- Auth View -->
+        <div id="authView" class="view active min-h-screen w-full items-center justify-center p-4 bg-slate-50">
+            <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden grid md:grid-cols-2">
+                <!-- Left Decorative Panel -->
+                <div class="relative hidden md:block bg-blue-600 p-8 text-white">
+                    <div class="absolute inset-0 overflow-hidden">
+                        <svg id="wavy-svg" class="absolute h-full w-auto" style="left: -40%; top: -5%;" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M 0 800 L 800 800 L 800 0 C 600 200, 400 0, 200 200 C 0 400, 0 800, 0 800 Z" fill="#4785FF" fill-opacity="0.6"/>
+                            <path d="M 0 800 L 800 800 L 800 0 C 700 150, 350 50, 200 250 C 50 450, 0 800, 0 800 Z" fill="#3B82F6"/>
+                        </svg>
+                    </div>
+                    <div class="relative z-10 flex flex-col justify-between h-full">
+                        <div>
+                            <h2 class="text-3xl font-bold tracking-tight">Vaccine Guard</h2>
+                            <p class="mt-2 text-blue-200">Your family's health, simplified.</p>
+                        </div>
+                         <svg xmlns="http://www.w3.org/2000/svg" class="w-2/3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L12 2A5.25 5.25 0 0 1 17.25 7.25L17.25 7.25A5.25 5.25 0 0 1 12 12.5L12 12.5A5.25 5.25 0 0 1 6.75 7.25L6.75 7.25A5.25 5.25 0 0 1 12 2" stroke="#fff" fill="#fff" fill-opacity="0.1"/><path d="M12 12.5L12 22" stroke="#fff" fill="none"/><path d="M9 16L15 16" stroke="#fff" fill="none"/></svg>
+                        <p class="text-xs text-blue-300">© 2025 Vaccine Guard. All rights reserved.</p>
+                    </div>
+                </div>
+                <!-- Right Form Panel -->
+                <div class="p-8 flex flex-col justify-center">
+                    <!-- Login Form -->
+                    <div id="loginFormWrapper" class="form-wrapper active">
+                        <h1 class="text-3xl font-bold text-slate-900 mb-2">Welcome Back!</h1>
+                        <p class="text-slate-500 mb-6">Login to manage your reminders.</p>
+                        <form id="loginForm" class="space-y-4">
+                            <div>
+                                <label for="loginEmail" class="block text-sm font-medium text-slate-600 mb-1">Email</label>
+                                <input type="email" id="loginEmail" class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" required>
+                            </div>
+                            <div>
+                                <label for="loginPassword" class="block text-sm font-medium text-slate-600 mb-1">Password</label>
+                                <input type="password" id="loginPassword" class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" required>
+                            </div>
+                            <p id="loginErrorMessage" class="text-red-500 text-center text-sm min-h-[1.25rem]"></p>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 shadow-md hover:shadow-lg">Login</button>
+                        </form>
+                        <div class="relative my-6">
+                            <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                                <div class="w-full border-t border-gray-300"></div>
+                            </div>
+                            <div class="relative flex justify-center text-sm">
+                                <span class="px-2 bg-white text-gray-500">Or continue with</span>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="/oauth2/authorization/google" class="w-full flex items-center justify-center px-4 py-2 border border-slate-200 rounded-lg shadow-sm bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                                <svg class="w-5 h-5 mr-3" viewBox="0 0 48 48" aria-hidden="true">
+                                    <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+                                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.82l-7.11-5.52c-2.16 1.45-4.92 2.3-8.78 2.3-6.76 0-12.47-4.55-14.51-10.61H2.26v5.7C5.25 42.15 13.83 48 24 48z"/>
+                                    <path fill="#FBBC05" d="M9.49 28.19c-.45-1.35-.71-2.79-.71-4.29s.26-2.94.71-4.29V13.9H2.26C.81 16.73 0 20.25 0 24c0 3.75.81 7.27 2.26 10.1l7.23-5.91z"/>
+                                    <path fill="#EA4335" d="M24 9.4c3.49 0 6.58 1.2 9.02 3.49l6.27-6.27C35.91 2.84 30.48 0 24 0 13.83 0 5.25 5.85 2.26 13.9l7.23 5.7c2.04-6.06 7.75-10.2 14.51-10.2z"/>
+                                </svg>
+                                Sign in with Google
+                            </a>
+                        </div>
+                        <p class="text-center text-sm text-slate-500 mt-6">
+                            Don't have an account? <a href="#" id="showSignupLink" class="font-medium text-blue-600 hover:underline">Sign Up here</a>
+                        </p>
+                    </div>
+                    <!-- Signup Form -->
+                    <div id="signupFormWrapper" class="form-wrapper">
+                         <h1 class="text-3xl font-bold text-slate-900 mb-2">Create Account</h1>
+                        <p class="text-slate-500 mb-8">Start tracking vaccinations today.</p>
+                        <form id="signupForm" class="space-y-4">
+                            <div>
+                                <label for="signupName" class="block text-sm font-medium text-slate-600 mb-1">Full Name</label>
+                                <input type="text" id="signupName" class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" required>
+                            </div>
+                            <div>
+                                <label for="signupEmail" class="block text-sm font-medium text-slate-600 mb-1">Email</label>
+                                <input type="email" id="signupEmail" class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" required>
+                            </div>
+                             <div>
+                                <label for="signupPassword" class="block text-sm font-medium text-slate-600 mb-1">Password</label>
+                                <input type="password" id="signupPassword" class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-2">Register as</label>
+                                <div class="flex items-center space-x-4">
+                                    <label class="flex items-center">
+                                        <input type="radio" name="role" value="PARENT" class="form-radio text-blue-600" checked>
+                                        <span class="ml-2 text-slate-700">Parent</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="radio" name="role" value="DOCTOR" class="form-radio text-blue-600">
+                                        <span class="ml-2 text-slate-700">Doctor</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <p id="signupMessage" class="text-red-500 text-center text-sm min-h-[1.25rem]"></p>
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 shadow-md hover:shadow-lg">Create Account</button>
+                        </form>
+                        <p class="text-center text-sm text-slate-500 mt-6">
+                            Already have an account? <a href="#" id="showLoginLink" class="font-medium text-blue-600 hover:underline">Login here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard View (Container for both Parent and Doctor) -->
+        <div id="dashboardView" class="view w-full max-w-7xl mx-auto p-4 md:p-8">
+            <div class="w-full">
+                <header class="flex flex-wrap justify-between items-center mb-8 gap-4">
+                    <div>
+                        <h1 id="dashboardTitle" class="text-4xl font-bold text-slate-900">Dashboard</h1>
+                        <p id="dashboardSubtitle" class="text-slate-500 mt-1">Manage your vaccine schedules.</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                         <button id="manageVaccinesBtn" class="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center hidden">
+                            <i data-lucide="syringe" class="w-4 h-4 mr-2"></i>
+                            Manage Vaccines
+                        </button>
+                        <button id="viewNotificationsBtn" class="relative bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center hidden">
+                            <i data-lucide="bell" class="w-4 h-4 mr-2"></i>
+                            Notifications
+                            <span id="notificationDot" class="notification-dot"></span>
+                        </button>
+                        <button id="logoutButton" class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-2 px-4 rounded-lg transition-all shadow-md hover:shadow-lg flex items-center">
+                            <i data-lucide="log-out" class="w-4 h-4 mr-2"></i>
+                            Logout
+                        </button>
+                    </div>
+                </header>
+                
+                <!-- Doctor-specific "Add Child" button -->
+                <div id="doctorControls" class="mb-8 hidden">
+                     <button id="openAddChildModal" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-5 rounded-lg transition-transform transform hover:scale-105 flex items-center shadow-md hover:shadow-lg">
+                        <i data-lucide="plus" class="w-5 h-5 mr-2"></i>
+                        Add New Child
+                    </button>
+                </div>
+                
+                <!-- Parent-specific User ID display -->
+                <div id="parentInfo" class="mb-8 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg hidden">
+                    <p class="text-sm text-blue-700">Your User ID (for doctor's reference): <strong id="parentUserId" class="font-mono bg-blue-100 p-1 rounded"></strong></p>
+                </div>
+
+                <div id="dashboardContent" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <!-- Child/Patient cards will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+    
+    <!-- Modals -->
+    <div id="addChildModal" class="modal fixed inset-0 bg-black bg-opacity-60 items-center justify-center p-4">
+        <div class="modal-content bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Add a New Child</h2>
+            <form id="addChildForm" class="space-y-4">
+                <div>
+                    <label for="childName" class="block text-sm font-medium text-slate-600 mb-1">Child's Name</label>
+                    <input type="text" id="childName" class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label for="childDob" class="block text-sm font-medium text-slate-600 mb-1">Date of Birth</label>
+                    <input type="date" id="childDob" class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div>
+                    <label for="childParentId" class="block text-sm font-medium text-slate-600 mb-1">Parent's User ID</label>
+                    <input type="text" id="childParentId" class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <p id="addChildError" class="text-red-500 text-center text-sm min-h-[1.25rem]"></p>
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" class="close-modal-btn px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">Add Child</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="addScheduleModal" class="modal fixed inset-0 bg-black bg-opacity-60 items-center justify-center p-4">
+        <div class="modal-content bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Add Vaccine Schedule</h2>
+            <form id="addScheduleForm" class="space-y-4">
+                <input type="hidden" id="scheduleChildId">
+                <div>
+                    <label for="vaccineId" class="block text-sm font-medium text-slate-600 mb-1">Vaccine</label>
+                    <select id="vaccineId" class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <label for="scheduledDate" class="block text-sm font-medium text-slate-600 mb-1">Scheduled Date</label>
+                    <input type="date" id="scheduledDate" class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <p id="addScheduleError" class="text-red-500 text-center text-sm min-h-[1.25rem]"></p>
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" class="close-modal-btn px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">Add Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="manageVaccinesModal" class="modal fixed inset-0 bg-black bg-opacity-60 items-center justify-center p-4">
+        <div class="modal-content bg-white p-8 rounded-2xl shadow-lg w-full max-w-lg">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Manage Vaccines</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-700 mb-4 border-b pb-2">Add New Vaccine</h3>
+                    <form id="addVaccineForm" class="space-y-4">
+                        <div>
+                            <label for="vaccineName" class="block text-sm font-medium text-slate-600 mb-1">Vaccine Name</label>
+                            <input type="text" id="vaccineName" class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="vaccineDescription" class="block text-sm font-medium text-slate-600 mb-1">Description</label>
+                            <textarea id="vaccineDescription" rows="3" class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                        <p id="addVaccineError" class="text-red-500 text-center text-sm min-h-[1.25rem]"></p>
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg py-2 transition-colors">Add Vaccine</button>
+                    </form>
+                </div>
+                <div>
+                     <h3 class="text-lg font-semibold text-slate-700 mb-4 border-b pb-2">Available Vaccines</h3>
+                     <div id="vaccineList" class="space-y-2 max-h-60 overflow-y-auto pr-2">
+                        <!-- Vaccine list will be populated here -->
+                     </div>
+                </div>
+            </div>
+             <div class="flex justify-end pt-8">
+                <button type="button" class="close-modal-btn px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="sendNotificationModal" class="modal fixed inset-0 bg-black bg-opacity-60 items-center justify-center p-4">
+        <div class="modal-content bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Send Notification</h2>
+            <p class="text-sm text-slate-500 mb-4">Send a custom message to the parent of <strong id="notificationChildName"></strong>.</p>
+            <form id="sendNotificationForm" class="space-y-4">
+                <input type="hidden" id="notificationChildId">
+                <div>
+                    <label for="notificationMessageContent" class="block text-sm font-medium text-slate-600 mb-1">Message</label>
+                    <textarea id="notificationMessageContent" rows="4" class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., Please schedule a visit for the upcoming vaccine." required></textarea>
+                </div>
+                <p id="sendNotificationError" class="text-red-500 text-center text-sm min-h-[1.25rem]"></p>
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" class="close-modal-btn px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">Send Message</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+     <div id="viewNotificationsModal" class="modal fixed inset-0 bg-black bg-opacity-60 items-center justify-center p-4">
+        <div class="modal-content bg-white p-8 rounded-2xl shadow-lg w-full max-w-lg">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Your Notifications</h2>
+            <div id="notificationList" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                <!-- Notifications will be populated here -->
+            </div>
+             <div class="flex justify-end pt-8">
+                <button type="button" class="close-modal-btn px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const API_BASE_URL = 'http://localhost:8080';
+
+        // --- State ---
+        let availableVaccines = [];
+
+        // --- DOM Elements ---
+        const views = document.querySelectorAll('.view');
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const showSignupLink = document.getElementById('showSignupLink');
+        const showLoginLink = document.getElementById('showLoginLink');
+        const logoutButton = document.getElementById('logoutButton');
+        const dashboardContent = document.getElementById('dashboardContent');
+        const dashboardTitle = document.getElementById('dashboardTitle');
+        const dashboardSubtitle = document.getElementById('dashboardSubtitle');
+        const doctorControls = document.getElementById('doctorControls');
+        const manageVaccinesBtn = document.getElementById('manageVaccinesBtn');
+        const viewNotificationsBtn = document.getElementById('viewNotificationsBtn');
+        const notificationDot = document.getElementById('notificationDot');
+        const parentInfo = document.getElementById('parentInfo');
+        const parentUserId = document.getElementById('parentUserId');
+        const openAddChildModalBtn = document.getElementById('openAddChildModal');
+        const closeModalBtns = document.querySelectorAll('.close-modal-btn');
+        
+        // Modals
+        const addChildModal = document.getElementById('addChildModal');
+        const addScheduleModal = document.getElementById('addScheduleModal');
+        const manageVaccinesModal = document.getElementById('manageVaccinesModal');
+        const sendNotificationModal = document.getElementById('sendNotificationModal');
+        const viewNotificationsModal = document.getElementById('viewNotificationsModal');
+
+        // Modal Forms & Content
+        const addChildForm = document.getElementById('addChildForm');
+        const addScheduleForm = document.getElementById('addScheduleForm');
+        const addVaccineForm = document.getElementById('addVaccineForm');
+        const sendNotificationForm = document.getElementById('sendNotificationForm');
+        const vaccineSelect = document.getElementById('vaccineId');
+        const vaccineList = document.getElementById('vaccineList');
+        const notificationList = document.getElementById('notificationList');
+        const notificationChildName = document.getElementById('notificationChildName');
+        const notificationChildIdInput = document.getElementById('notificationChildId');
+
+        // Error & Message Elements
+        const loginErrorMessage = document.getElementById('loginErrorMessage');
+        const signupMessage = document.getElementById('signupMessage');
+        const addChildError = document.getElementById('addChildError');
+        const addScheduleError = document.getElementById('addScheduleError');
+        const addVaccineError = document.getElementById('addVaccineError');
+        const sendNotificationError = document.getElementById('sendNotificationError');
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notificationMessage');
+        const notificationIcon = document.getElementById('notificationIcon');
+
+        // --- Navigation Logic ---
+        const showView = (viewId) => {
+            views.forEach(view => view.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        };
+        
+        const showAuthForm = (formWrapperId) => {
+            document.querySelectorAll('.form-wrapper').forEach(fw => fw.classList.remove('active'));
+            document.getElementById(formWrapperId).classList.add('active');
+        };
+
+        // --- Modal Logic ---
+        const openModal = (modal) => modal.classList.add('active');
+        const closeModal = (modal) => {
+            modal.classList.remove('active');
+            const errorElement = modal.querySelector('[id$="Error"]');
+            if (errorElement) errorElement.textContent = '';
+        };
+
+        // --- Notification Logic ---
+        const showNotification = (message, isError = false) => {
+            notificationMessage.textContent = message;
+            notification.className = `fixed top-5 right-5 z-50 p-4 rounded-xl shadow-2xl text-white max-w-sm flex items-center ${isError ? 'bg-red-500' : 'bg-green-500'}`;
+            notificationIcon.innerHTML = isError ? `<i data-lucide="alert-triangle"></i>` : `<i data-lucide="check-circle"></i>`;
+            lucide.createIcons();
+            notification.classList.add('show');
+            setTimeout(() => notification.classList.remove('show'), 3500);
+        };
+
+        // --- **PERFECTED** API & Auth Logic ---
+        const apiRequest = async (endpoint, options = {}) => {
+            let response; 
+            try {
+                const token = localStorage.getItem('token');
+                const headers = { 'Content-Type': 'application/json', ...options.headers };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+                
+                const responseText = await response.text();
+
+                if (!response.ok) {
+                    let errorMessage = `Request failed with status ${response.status}`;
+                    if (responseText) {
+                        try {
+                            const errorData = JSON.parse(responseText);
+                            errorMessage = errorData.message || JSON.stringify(errorData);
+                        } catch (e) {
+                            errorMessage = responseText; 
+                        }
+                    }
+                    
+                    if (response.status === 401 || response.status === 403) {
+                        handleLogout();
+                        throw new Error('Session expired or unauthorized. Please log in again.');
+                    }
+                    throw new Error(errorMessage);
+                }
+                
+                return responseText ? JSON.parse(responseText) : null;
+
+            } catch (err) {
+                console.error(`API Request Error for endpoint ${endpoint}:`, err);
+                let userMessage = err.message || 'An unexpected error occurred.';
+                if (err instanceof TypeError) {
+                    userMessage = 'Could not connect to the server. Is it running?';
+                }
+                showNotification(userMessage, true);
+                throw err;
+            }
+        };
+
+        const parseJwt = (token) => {
+            try { return JSON.parse(atob(token.split('.')[1])); } catch (e) { return null; }
+        };
+
+        const handleLogout = () => {
+            localStorage.removeItem('token');
+            window.history.replaceState({}, document.title, window.location.pathname);
+            showView('authView');
+            showAuthForm('loginFormWrapper');
+        };
+
+        const initializeApp = () => {
+            lucide.createIcons();
+            const urlParams = new URLSearchParams(window.location.search);
+            const tokenFromUrl = urlParams.get('token');
+
+            if (tokenFromUrl) {
+                localStorage.setItem('token', tokenFromUrl);
+                window.history.replaceState({}, document.title, window.location.pathname);
+                const decoded = parseJwt(tokenFromUrl);
+                if (decoded) {
+                    setupDashboard(decoded);
+                    return;
+                }
+            }
+            
+            const token = localStorage.getItem('token');
+            if (token) {
+                const decoded = parseJwt(token);
+                if (decoded && decoded.exp * 1000 > Date.now()) {
+                    setupDashboard(decoded);
+                } else { handleLogout(); }
+            } else { showView('authView'); }
+        };
+        
+        // --- Event Listeners ---
+        showSignupLink.addEventListener('click', (e) => { e.preventDefault(); showAuthForm('signupFormWrapper'); });
+        showLoginLink.addEventListener('click', (e) => { e.preventDefault(); showAuthForm('loginFormWrapper'); });
+        openAddChildModalBtn.addEventListener('click', () => openModal(addChildModal));
+        manageVaccinesBtn.addEventListener('click', () => openModal(manageVaccinesModal));
+        viewNotificationsBtn.addEventListener('click', async () => {
+            await fetchNotifications();
+            openModal(viewNotificationsModal);
+        });
+        closeModalBtns.forEach(btn => btn.addEventListener('click', () => {
+            closeModal(addChildModal);
+            closeModal(addScheduleModal);
+            closeModal(manageVaccinesModal);
+            closeModal(sendNotificationModal);
+            closeModal(viewNotificationsModal);
+        }));
+        logoutButton.addEventListener('click', handleLogout);
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loginErrorMessage.textContent = '';
+            try {
+                const data = await apiRequest('/api/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        username: document.getElementById('loginEmail').value, 
+                        password: document.getElementById('loginPassword').value 
+                    })
+                });
+                if (data && data.jwt) {
+                    localStorage.setItem('token', data.jwt);
+                    setupDashboard(parseJwt(data.jwt));
+                }
+            } catch (err) { loginErrorMessage.textContent = err.message; }
+        });
+
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            signupMessage.textContent = '';
+            try {
+                const response = await apiRequest('/api/auth/signup', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: document.getElementById('signupName').value,
+                        email: document.getElementById('signupEmail').value,
+                        password: document.getElementById('signupPassword').value,
+                        role: document.querySelector('input[name="role"]:checked').value
+                    }),
+                });
+                showNotification(response.message || 'Registration successful! Please log in.');
+                signupForm.reset();
+                showAuthForm('loginFormWrapper');
+            } catch (error) { signupMessage.textContent = error.message; }
+        });
+
+        addChildForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            addChildError.textContent = '';
+            try {
+                await apiRequest('/api/children', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        name: document.getElementById('childName').value,
+                        dob: document.getElementById('childDob').value,
+                        parentId: document.getElementById('childParentId').value
+                    })
+                });
+                showNotification('Child added successfully!');
+                addChildForm.reset();
+                closeModal(addChildModal);
+                fetchDoctorData();  
+            } catch (err) { addChildError.textContent = err.message; }
+        });
+
+        addScheduleForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            addScheduleError.textContent = '';
+            try {
+                await apiRequest('/api/schedules', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        childId: document.getElementById('scheduleChildId').value,
+                        vaccineId: vaccineSelect.value,
+                        scheduledDate: document.getElementById('scheduledDate').value,
+                    })
+                });
+                showNotification('Schedule added successfully!');
+                addScheduleForm.reset();
+                closeModal(addScheduleModal);
+                fetchDoctorData();
+            } catch (err) { addScheduleError.textContent = err.message; }
+        });
+        
+        addVaccineForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            addVaccineError.textContent = '';
+            try {
+                await apiRequest('/api/vaccines', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: document.getElementById('vaccineName').value,
+                        description: document.getElementById('vaccineDescription').value,
+                    })
+                });
+                showNotification('Vaccine added successfully!');
+                addVaccineForm.reset();
+                fetchAvailableVaccines();
+            } catch (err) { addVaccineError.textContent = err.message; }
+        });
+
+        sendNotificationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            sendNotificationError.textContent = '';
+            try {
+                await apiRequest('/api/notifications', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        childId: notificationChildIdInput.value,
+                        message: document.getElementById('notificationMessageContent').value,
+                    })
+                });
+                showNotification('Notification sent successfully!');
+                sendNotificationForm.reset();
+                closeModal(sendNotificationModal);
+            } catch (err) { sendNotificationError.textContent = err.message; }
+        });
+
+        dashboardContent.addEventListener('click', async (e) => {
+            const markBtn = e.target.closest('.mark-completed-btn');
+            const addBtn = e.target.closest('.add-schedule-btn');
+            const notifyBtn = e.target.closest('.send-notification-btn');
+
+            if (markBtn) {
+                const scheduleId = markBtn.getAttribute('data-id');
+                try {
+                    await apiRequest(`/api/schedules/${scheduleId}/complete`, { method: 'PUT' });
+                    showNotification('Schedule updated successfully!');
+                    fetchDoctorData();
+                } catch (err) { /* Error already handled */ }
+            }
+
+            if (addBtn) {
+                const childId = addBtn.getAttribute('data-child-id');
+                document.getElementById('scheduleChildId').value = childId;
+                openModal(addScheduleModal);
+            }
+
+            if (notifyBtn) {
+                const childId = notifyBtn.getAttribute('data-child-id');
+                const childName = notifyBtn.getAttribute('data-child-name');
+                notificationChildIdInput.value = childId;
+                notificationChildName.textContent = childName;
+                openModal(sendNotificationModal);
+            }
+        });
+
+        // --- Dashboard Logic ---
+        const setupDashboard = async (decodedToken) => {
+            showView('dashboardView');
+            const userRole = decodedToken.roles[0];
+            const userId = decodedToken.userId;
+
+            doctorControls.classList.add('hidden');
+            manageVaccinesBtn.classList.add('hidden');
+            viewNotificationsBtn.classList.add('hidden');
+            parentInfo.classList.add('hidden');
+
+            if (userRole === 'ROLE_DOCTOR') {
+                dashboardTitle.textContent = "Doctor's Dashboard";
+                dashboardSubtitle.textContent = "Manage your patients and their schedules.";
+                doctorControls.classList.remove('hidden');
+                manageVaccinesBtn.classList.remove('hidden');
+                await fetchAvailableVaccines();
+                fetchDoctorData();
+            } else if (userRole === 'ROLE_PARENT') {
+                dashboardTitle.textContent = "Parent's Dashboard";
+                dashboardSubtitle.textContent = "View your children's vaccination schedules.";
+                parentInfo.classList.remove('hidden');
+                viewNotificationsBtn.classList.remove('hidden');
+                parentUserId.textContent = userId;
+                fetchParentData();
+                fetchNotifications(true); // Check for new notifications silently
+            }
+            lucide.createIcons();
+        };
+
+        const fetchAvailableVaccines = async () => {
+            try {
+                availableVaccines = await apiRequest('/api/vaccines');
+                
+                vaccineSelect.innerHTML = '<option value="" disabled selected>Select a vaccine</option>';
+                availableVaccines.forEach(v => {
+                    vaccineSelect.innerHTML += `<option value="${v.id}">${v.name}</option>`;
+                });
+                
+                vaccineList.innerHTML = availableVaccines.map(v => 
+                    `<div class="p-2 bg-slate-50 rounded-md text-sm">${v.name}</div>`
+                ).join('') || `<p class="text-sm text-slate-500">No vaccines added yet.</p>`;
+
+            } catch (error) { /* Handled */ }
+        };
+        
+        const fetchNotifications = async (silent = false) => {
+            try {
+                const notifications = await apiRequest('/api/notifications/my-notifications');
+                if (silent) {
+                    const hasUnread = notifications.some(n => !n.read);
+                    notificationDot.style.display = hasUnread ? 'block' : 'none';
+                } else {
+                    renderNotifications(notifications);
+                }
+            } catch(err) { /* Handled */ }
+        };
+
+        const fetchDoctorData = async () => {
+            renderLoadingState();
+            try { renderCards(await apiRequest('/api/children')); } 
+            catch (err) { renderErrorState(err); }
+        };
+
+        const fetchParentData = async () => {
+            renderLoadingState();
+            try { renderCards(await apiRequest('/api/children/my-children')); } 
+            catch (err) { renderErrorState(err); }
+        };
+
+        // --- Rendering Logic ---
+        const renderLoadingState = () => {
+            dashboardContent.innerHTML = `<div class="spinner border-4 border-slate-200 rounded-full w-12 h-12 mx-auto lg:col-span-3"></div>`;
+        };
+        
+        const renderErrorState = (err) => {
+            if (err.message && !err.message.toLowerCase().includes('session expired')) {
+                dashboardContent.innerHTML = `<p class="error text-center text-red-500 lg:col-span-3">${err.message}</p>`;
+            }
+        };
+        
+        const renderNotifications = (notifications) => {
+             if (!notifications || notifications.length === 0) {
+                notificationList.innerHTML = `<p class="text-sm text-slate-500">You have no new notifications.</p>`;
+                return;
+            }
+            notificationList.innerHTML = notifications.map(n => `
+                <div class="p-4 rounded-lg bg-slate-50 border-l-4 ${n.read ? 'border-slate-300' : 'border-purple-500'}">
+                    <p class="font-semibold text-slate-800">${n.message}</p>
+                    <p class="text-xs text-slate-500 mt-1">From Dr. ${n.senderName} regarding ${n.childName} - ${new Date(n.timestamp).toLocaleString()}</p>
+                </div>
+            `).join('');
+        };
+
+        const renderCards = (children) => {
+            dashboardContent.innerHTML = '';
+            const isDoctor = parseJwt(localStorage.getItem('token')).roles[0] === 'ROLE_DOCTOR';
+
+            if (!children || children.length === 0) {
+                dashboardContent.innerHTML = `
+                <div class="lg:col-span-3 text-center text-slate-500 bg-white p-8 rounded-2xl shadow-sm">
+                    <i data-lucide="folder-search" class="mx-auto h-12 w-12 text-gray-400"></i>
+                    <h3 class="mt-2 text-lg font-medium text-gray-900">No records found</h3>
+                    <p class="mt-1 text-sm text-gray-500">${isDoctor ? "Get started by adding a new child." : "Your doctor has not added any children yet."}</p>
+                </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            children.forEach(child => {
+                const schedulesHtml = (child.schedules || []).map(s => {
+                    const statusClass = s.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700';
+                    const statusText = s.status.charAt(0) + s.status.slice(1).toLowerCase();
+                    return `
+                        <div class="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                            <div>
+                                <strong class="text-slate-800">${s.vaccineName || 'N/A'}</strong>
+                                <span class="text-sm text-slate-500 ml-2">Due: ${s.scheduledDate}</span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-xs font-semibold px-2 py-1 rounded-full ${statusClass}">${statusText}</span>
+                                ${isDoctor && s.status !== 'COMPLETED' ? `<button class="mark-completed-btn text-xs bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-3 rounded-full transition-colors" data-id="${s.id}">Mark Done</button>` : ''}
+                            </div>
+                        </div>`;
+                }).join('') || '<p class="text-sm text-slate-500 mt-4">No vaccine schedules added yet.</p>';
+
+                const card = document.createElement('div');
+                card.className = 'child-card bg-white p-6 rounded-2xl shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">${child.name}</h3>
+                            <p class="text-sm text-slate-500">Born: ${child.dob}</p>
+                        </div>
+                        <div class="flex gap-2">
+                             ${isDoctor ? `<button class="send-notification-btn text-sm bg-purple-500 hover:bg-purple-600 text-white font-semibold p-2 rounded-lg transition-colors flex items-center" data-child-id="${child.id}" data-child-name="${child.name}">
+                                <i data-lucide="send" class="h-4 w-4"></i>
+                            </button>` : ''}
+                            ${isDoctor ? `<button class="add-schedule-btn text-sm bg-indigo-500 hover:bg-indigo-600 text-white font-semibold p-2 rounded-lg transition-colors flex items-center" data-child-id="${child.id}">
+                                <i data-lucide="plus" class="h-4 w-4"></i>
+                            </button>` : ''}
+                        </div>
+                    </div>
+                    <hr class="my-4">
+                    <h4 class="text-md font-semibold text-slate-700 mb-2">Schedules</h4>
+                    <div class="space-y-3 mt-4">${schedulesHtml}</div>
+                `;
+                dashboardContent.appendChild(card);
+            });
+            lucide.createIcons();
+        };
+
+        // Initialize the app
+        initializeApp();
+    });
+    </script>
+</body>
+</html>
+
